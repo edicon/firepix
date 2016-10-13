@@ -15,7 +15,7 @@
   -->
 
 <resources>
-    <string name="app_name">FriendlyPix</string>
+    <string name="app_name">FirePix</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_feed">FeedActivity</string>
     <string name="server_client_id">85010793512-5t8ejsijkp68vgudb9jn00ct1tnrgoac.apps.googleusercontent.com</string>

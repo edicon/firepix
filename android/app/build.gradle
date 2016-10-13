@@ -21,7 +21,7 @@ android {
     buildToolsVersion "23.0.3"
 
     defaultConfig {
-        applicationId "com.google.firebase.samples.apps.friendlypix"
+        applicationId "com.edicon.firebase.devs.firepix"
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 3
@@ -44,12 +44,10 @@ android {
     }
     productFlavors {
         dev {
+            applicationId "com.edicon.firebase.devs.firepix"
         }
         prod {
-            applicationId "pub.devrel.friendlypix"
-        }
-        dev2 {
-            applicationId "com.google.firebase.samples.apps.friendlypixtest"
+            applicationId "com.edicon.firebase.apps.firepix"
         }
     }
     packagingOptions {
