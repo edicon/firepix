@@ -16,7 +16,10 @@
 
 package com.edicon.firebase.devs.firepix;
 
+import android.Manifest;
 import android.content.Intent;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentManager;
@@ -44,7 +47,13 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FeedsActivity extends AppCompatActivity implements PostsFragment.OnPostSelectedListener {
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
+
+public class FeedsActivity extends AppCompatActivity implements
+    PostsFragment.OnPostSelectedListener,
+    GeoFireFragment.OnGeoFireSelectedListener
+{
     private static final String TAG = "FeedsActivity";
     private FloatingActionButton mFab;
 
@@ -60,6 +69,7 @@ public class FeedsActivity extends AppCompatActivity implements PostsFragment.On
         FeedsPagerAdapter adapter = new FeedsPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(PostsFragment.newInstance(PostsFragment.TYPE_HOME), "HOME");
         adapter.addFragment(PostsFragment.newInstance(PostsFragment.TYPE_FEED), "FEED");
+        adapter.addFragment(GeoFireFragment.newInstance(GeoFireFragment.TYPE_GEOFIRE), "GEOFIRE");
         viewPager.setAdapter(adapter);
         viewPager.setCurrentItem(1);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.feeds_tab_layout);
@@ -78,6 +88,8 @@ public class FeedsActivity extends AppCompatActivity implements PostsFragment.On
                 startActivity(newPostIntent);
             }
         });
+
+        checkPermission();
     }
 
     @Override
@@ -110,6 +122,15 @@ public class FeedsActivity extends AppCompatActivity implements PostsFragment.On
     }
 
     @Override
+    public void onGeofireComment(String postKey) {
+        onPostLike(postKey);
+    }
+
+    @Override
+    public void onGeofireLike(String postKey) {
+        onPostLike( postKey );
+    }
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_feeds, menu);
@@ -134,6 +155,8 @@ public class FeedsActivity extends AppCompatActivity implements PostsFragment.On
 
         return super.onOptionsItemSelected(item);
     }
+
+
 
     class FeedsPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragmentList = new ArrayList<>();
@@ -161,6 +184,27 @@ public class FeedsActivity extends AppCompatActivity implements PostsFragment.On
         @Override
         public CharSequence getPageTitle(int position) {
             return mFragmentTitleList.get(position);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private static final int RC_FINE_LOCATION_PERMS = 1001;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
+    @AfterPermissionGranted(RC_FINE_LOCATION_PERMS)
+    private void checkPermission() {
+        String perm = Manifest.permission.ACCESS_FINE_LOCATION;
+        if (!EasyPermissions.hasPermissions(this, perm)) {
+            EasyPermissions.requestPermissions(this, getString(R.string.perm_access_fine_location), RC_FINE_LOCATION_PERMS, perm);
+            return;
         }
     }
 }

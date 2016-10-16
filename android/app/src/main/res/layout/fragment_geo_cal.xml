@@ -1,0 +1,73 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.edicon.firebase.devs.firepix.GeoFireFragment"
+    android:orientation="vertical">
+
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="1dp" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="1dp"
+            android:visibility="gone">
+
+            <TextView
+                android:text="일: Time: 2:50 Step: 1,234 거리: 2Km"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/dayActivity"
+                android:gravity="right" />
+
+            <TextView
+                android:text="월: Time: 2:50 Step: 1234 거리: 2Km"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/monthActivity"
+                android:gravity="right" />
+        </LinearLayout>
+
+        <com.prolificinteractive.materialcalendarview.MaterialCalendarView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/calendarView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:mcv_selectionColor="@color/colorPrimaryDark"
+            android:layout_marginBottom="15dp" />
+        <!-- app:mcv_showOtherDates="all"-->
+        <!--
+        <CalendarView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/calendarView"
+            android:padding="1dp" />
+            -->
+
+    </LinearLayout>
+
+    <!--
+    <com.google.android.gms.maps.SupportMapFragment
+        android:layout_width="match_parent"
+        android:layout_height="142dp"
+        android:id="@+id/mapView" />
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/mapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:name="com.google.android.gms.maps.SupportMapFragment"/>
+        -->
+</LinearLayout>

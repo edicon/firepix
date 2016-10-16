@@ -84,4 +84,7 @@ class FirebaseUtil {
     public static DatabaseReference getFollowersRef() {
         return getBaseRef().child("followers");
     }
+    public static DatabaseReference getGerFireRef() {
+        return getBaseRef().child("my-geofire");
+    }
 }
