@@ -36,10 +36,13 @@ public class MyLocation  {
     public static String lastUpdateTime;
 
     private String userKey;
+    private MyGeoFire myGeoFire;
     private GoogleApiClient googleApiClient;
 
-    public MyLocation( GoogleApiClient apiClient ) {
-        googleApiClient = apiClient;
+    public MyLocation( GoogleApiClient googleApiClient, MyGeoFire myGeoFire ) {
+        this.googleApiClient = googleApiClient;
+        this.myGeoFire = myGeoFire;
+
         userKey = getUserKey();
         createLocationRequest();
     }
@@ -114,18 +117,18 @@ public class MyLocation  {
 
     // ToDo: Check Ref. Source
     private void showMap(double latitude, double longitude) {
-        if( MyGeoFire.getMap() != null )
-            MyGeoFire.showMap( latitude, longitude);
+        if( myGeoFire != null )
+            myGeoFire.showMap( latitude, longitude);
     }
 
     private void sendLocationToGeoFire(String userKey, double latitude, double longitude) {
-        if( MyGeoFire.getGeoFire() != null )
-            MyGeoFire.sendLocationToGeoFire( userKey, latitude, longitude);
+        if( myGeoFire != null )
+            myGeoFire.sendLocationToGeoFire( userKey, latitude, longitude);
     }
 
     public void onStart( GoogleApiClient apiClient, MyGeoFire myGeoFire ) {
         // this.geoQuery.addGeoQueryEventListener(this);
-        MyGeoFire.addGeoQueryEventListener( myGeoFire );
+        myGeoFire.addGeoQueryEventListener( myGeoFire );
         apiClient.connect();
     }
 }

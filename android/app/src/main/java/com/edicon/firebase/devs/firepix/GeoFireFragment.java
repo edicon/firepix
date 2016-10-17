@@ -149,7 +149,7 @@ public class GeoFireFragment extends Fragment implements
                 .addApi(LocationServices.API)
                 .build();
 
-        myLocation = new MyLocation( googleApiClient );
+        myLocation = new MyLocation( googleApiClient, myGeofire );
     }
 
     @Override
@@ -172,10 +172,10 @@ public class GeoFireFragment extends Fragment implements
     private static boolean MY_GEOFIRE = true;
     private void initMaplocation( GoogleMap googleMap) {
         if( MY_GEOFIRE ) {
-            myGeofire = MyGeoFire.newInstance(getContext(), googleMap);
+            myGeofire = new MyGeoFire(getContext(), googleMap);
             // GeoLocation INITIAL_CENTER = new GeoLocation(37.7789, -122.4017); // SF
             GeoLocation INITIAL_CENTER = new GeoLocation(37.552042, 127.089785); // Acha
-            myGeofire.startGeofire(INITIAL_CENTER);
+            myGeofire.startGeoFire(INITIAL_CENTER);
             addGeoLocation();
             return;
         }

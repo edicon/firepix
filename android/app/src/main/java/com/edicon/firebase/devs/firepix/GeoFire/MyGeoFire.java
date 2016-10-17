@@ -56,41 +56,25 @@ public class MyGeoFire implements
     private static final String GEO_FIRE_DB     = "https://vivid-torch-3052.firebaseio.com";
     private static final String GEO_FIRE_REF    = GEO_FIRE_DB + "/my-geofire";
 
-    private static Context  context;
+    private Context  context;
 
     private Circle searchCircle;
-    private static GeoFire   geoFire;
-    private static GeoQuery  geoQuery;
-    private static GoogleMap geoMap;
-
-    private static MyGeoFire myGeoFire;
+    private GeoFire   geoFire;
+    private GeoQuery  geoQuery;
+    private GoogleMap geoMap;
 
     private Map<String, Marker> markers;
 
-    public static MyGeoFire newInstance(Context cx, GoogleMap map ) {
+    public MyGeoFire(Context cx, GoogleMap map ) {
         context = cx;
         geoMap  = map;
-        myGeoFire = new MyGeoFire();
-        return myGeoFire;
     }
 
-    public static MyGeoFire getMyGeoFire() {
-        return myGeoFire;
-    }
-
-    public static GoogleMap getMap() {
-        return geoMap;
-    }
-
-    public static GeoFire getGeoFire() {
-        return geoFire;
-    }
-
-    public void startGeofire( GeoLocation initialCenter ) {
+    public void startGeoFire( GeoLocation initialCenter ) {
         if( initialCenter != null )
-            initGeofire(geoMap, GEO_FIRE_DB, GEO_FIRE_REF, initialCenter);
+            initGeofire( geoMap, GEO_FIRE_DB, GEO_FIRE_REF, initialCenter);
         else
-            initGeofire(geoMap, GEO_FIRE_DB, GEO_FIRE_REF, INITIAL_CENTER);
+            initGeofire( geoMap, GEO_FIRE_DB, GEO_FIRE_REF, INITIAL_CENTER);
     }
 
     public void initGeofire(GoogleMap gMap, String geoFireDB, String geoFireRef, GeoLocation initialCenter ) {
@@ -120,11 +104,10 @@ public class MyGeoFire implements
         this.markers = new HashMap<String, Marker>();
 
         // add an event listener to start updating locations again
-        addGeoQueryEventListener( myGeoFire );
-        // geoQuery.addGeoQueryEventListener( this );
+        addGeoQueryEventListener( this );
     }
 
-    public static void addGeoQueryEventListener( MyGeoFire myGeoFire) {
+    public void addGeoQueryEventListener( MyGeoFire myGeoFire) {
         geoQuery.addGeoQueryEventListener( myGeoFire );
     }
 
@@ -141,7 +124,8 @@ public class MyGeoFire implements
         geoQuery.setRadius(radius/1000); // radius in km
 
         if(BuildConfig.DEBUG) {
-            String geoInfo = String.format("--> onCameraChange: %s changed with [%f,%f]", cameraPosition.toString(), center.latitude, center.longitude);
+            String format = "--> onCameraChange: %s changed with [%f,%f]";
+            String geoInfo = String.format( format, cameraPosition.toString(), center.latitude, center.longitude);
             Log.d(TAG, geoInfo);
         }
     }
@@ -156,7 +140,8 @@ public class MyGeoFire implements
         this.markers.put(key, marker);
 
         if(BuildConfig.DEBUG) {
-            String geoInfo = String.format("    --> Key: %s entered with [%f,%f]", key, location.latitude, location.longitude);
+            String format = "    --> Key: %s entered with [%f,%f]";
+            String geoInfo = String.format( format, key, location.latitude, location.longitude);
             Log.d(TAG, geoInfo);
         }
     }
@@ -294,13 +279,13 @@ public class MyGeoFire implements
         geoFire.removeLocation(key);
     }
 
-    public static void showMap( double userLatitude, double userLongitude){
+    public void showMap( double userLatitude, double userLongitude){
         LatLng latLngCenter = new LatLng(userLatitude, userLongitude);
         // ToDo: check zoom level: double radius = zoomLevelToRadius(cameraPosition.zoom);
         geoMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngCenter, INITIAL_ZOOM_LEVEL));
     }
 
-    public static void sendLocationToGeoFire( String userKey, double userLatitude, double userLongitude){
+    public void sendLocationToGeoFire( String userKey, double userLatitude, double userLongitude){
         geoFire.setLocation( userKey,  new GeoLocation(userLatitude, userLongitude));
     }
 }
