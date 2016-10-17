@@ -25,6 +25,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CalendarView;
 import android.widget.LinearLayout;
 
 import com.edicon.firebase.devs.firepix.GeoFire.MyGeoFire;
@@ -99,14 +100,21 @@ public class GeoFireFragment extends Fragment implements
         View rootView = inflater.inflate(R.layout.fragment_geo_cal, container, false);
 
         mapView = (MapView) rootView.findViewById(R.id.mapView);
-        calendarView = (MaterialCalendarView) rootView.findViewById(R.id.calendarView);
-        // calendarView.setTileHeight(LinearLayout.LayoutParams.MATCH_PARENT);
-        calendarView.setTileSize(LinearLayout.LayoutParams.MATCH_PARENT);
-
         mapView.onCreate(savedInstanceState);
 
-        mapView.onResume(); // needed to get the map to display immediately
+        calendarView = (MaterialCalendarView) rootView.findViewById(R.id.calendarView);
+        calendarView.setTileSize(LinearLayout.LayoutParams.MATCH_PARENT);
+        // calendarView.setTileHeight(LinearLayout.LayoutParams.MATCH_PARENT);
 
+        initMapView( mapView );
+        initCalendarView( calendarView );
+
+        return rootView;
+    }
+
+    private void initMapView( MapView mapView ) {
+        // needed to get the map to display immediately
+        mapView.onResume();
         try {
             MapsInitializer.initialize(getActivity().getApplicationContext());
         } catch (Exception e) {
@@ -115,32 +123,20 @@ public class GeoFireFragment extends Fragment implements
 
         mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
-            public void onMapReady(GoogleMap mMap) {
-                googleMap = mMap;
-                // For showing a move to my location button
+            public void onMapReady(GoogleMap ggMap) {
+                googleMap = ggMap;
                 try {
+                    // For showing a move to my location button
                     googleMap.setMyLocationEnabled(true);
+
+                    initMaplocation(googleMap);
+                    // ToDo: Check
+                    // buildGoogleApiClient();
                 } catch( SecurityException e ) {
                     e.printStackTrace();
                 }
-
-                initMaplocation(googleMap);
-                // ToDo: Check
-                // buildGoogleApiClient();
             }
         });
-
-        calendarView.setOnDateChangedListener(new OnDateSelectedListener() {
-            @Override
-            public void onDateSelected(@NonNull MaterialCalendarView widget, @NonNull CalendarDay date, boolean selected) {
-                if(BuildConfig.DEBUG )
-                    Log.d(TAG, "Day: " + widget.getSelectedDates());
-            }
-        });
-        CalendarDay today = new CalendarDay();
-        calendarView.setCurrentDate(today);
-        calendarView.setSelectedDate(today);
-        return rootView;
     }
 
     private MyLocation myLocation;
@@ -332,5 +328,18 @@ public class GeoFireFragment extends Fragment implements
     public void onPermissionsDenied(int requestCode, List<String> list) {
         // Some permissions have been denied
         Log.d(TAG, "permission denied");
+    }
+
+    private void initCalendarView( MaterialCalendarView calendarView ) {
+        calendarView.setOnDateChangedListener(new OnDateSelectedListener() {
+            @Override
+            public void onDateSelected(@NonNull MaterialCalendarView widget, @NonNull CalendarDay date, boolean selected) {
+                if (BuildConfig.DEBUG)
+                    Log.d(TAG, "Day: " + widget.getSelectedDates());
+            }
+        });
+        CalendarDay today = new CalendarDay();
+        calendarView.setCurrentDate(today);
+        calendarView.setSelectedDate(today);
     }
 }
