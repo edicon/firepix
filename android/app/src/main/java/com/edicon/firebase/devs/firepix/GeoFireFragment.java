@@ -16,6 +16,7 @@
 
 package com.edicon.firebase.devs.firepix;
 
+import android.Manifest;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -26,10 +27,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.edicon.firebase.devs.firepix.GeoFire.MyGeofire;
+import com.edicon.firebase.devs.firepix.GeoFire.MyGeoFire;
+import com.edicon.firebase.devs.firepix.GeoFire.MyLocation;
 import com.edicon.firebase.devs.test.friendlypix.BuildConfig;
 import com.edicon.firebase.devs.test.friendlypix.R;
 import com.firebase.geofire.GeoLocation;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -42,11 +47,21 @@ import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 
+import java.util.List;
+
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
+
+import static com.edicon.firebase.devs.firepix.GeoFire.MyLocation.LAST_UPDATED_TIME_STRING_KEY;
+import static com.edicon.firebase.devs.firepix.PermUtil.RC_ACCESS_FINE_LOCATION;
+
 /**
  * Shows map in pagerView.
  *  -http://stackoverflow.com/questions/19353255/how-to-put-google-maps-v2-on-a-fragment-using-viewpager
  */
-public class GeoFireFragment extends Fragment {
+public class GeoFireFragment extends Fragment implements
+    GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+    EasyPermissions.PermissionCallbacks {
 
     public static final String TAG = "GeoFireFragment";
     private static final String KEY_LAYOUT_POSITION = "layoutPosition";
@@ -71,6 +86,8 @@ public class GeoFireFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        updateValuesFromBundle(savedInstanceState);
     }
 
     private MapView mapView;
@@ -108,6 +125,8 @@ public class GeoFireFragment extends Fragment {
                 }
 
                 initMaplocation(googleMap);
+                // ToDo: Check
+                // buildGoogleApiClient();
             }
         });
 
@@ -124,11 +143,40 @@ public class GeoFireFragment extends Fragment {
         return rootView;
     }
 
-    private MyGeofire myGeofire;
+    private MyLocation myLocation;
+    private GoogleApiClient googleApiClient;
+    protected synchronized void buildGoogleApiClient() {
+        Log.i(TAG, "Building GoogleApiClient");
+        googleApiClient = new GoogleApiClient.Builder(getContext())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
+        myLocation = new MyLocation( googleApiClient );
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        askLocationTask( myLocation );
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.i(TAG, "Connection suspended");
+        googleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.w(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
+    }
+
+    private MyGeoFire myGeofire;
     private static boolean MY_GEOFIRE = true;
     private void initMaplocation( GoogleMap googleMap) {
         if( MY_GEOFIRE ) {
-            myGeofire = new MyGeofire(getContext(), googleMap);
+            myGeofire = MyGeoFire.newInstance(getContext(), googleMap);
             // GeoLocation INITIAL_CENTER = new GeoLocation(37.7789, -122.4017); // SF
             GeoLocation INITIAL_CENTER = new GeoLocation(37.552042, 127.089785); // Acha
             myGeofire.startGeofire(INITIAL_CENTER);
@@ -166,12 +214,16 @@ public class GeoFireFragment extends Fragment {
     public void onResume() {
         super.onResume();
         mapView.onResume();
+        if (googleApiClient.isConnected()) {
+            myLocation.startLocationUpdates();
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mapView.onPause();
+        myLocation.stopLocationUpdates();
     }
 
     @Override
@@ -189,10 +241,37 @@ public class GeoFireFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         // Save currently selected layout manager.
-        int recyclerViewScrollPosition = 0; // ToDo: getRecyclerViewScrollPosition();
+        // ToDo: getRecyclerViewScrollPosition();
+        int recyclerViewScrollPosition = 0;
         Log.d(TAG, "Recycler view scroll position: " + recyclerViewScrollPosition);
         savedInstanceState.putSerializable(KEY_LAYOUT_POSITION, recyclerViewScrollPosition);
+
+        savedInstanceState.putParcelable(MyLocation.LOCATION_KEY, myLocation.currentLocation);
+        savedInstanceState.putString( MyLocation.LAST_UPDATED_TIME_STRING_KEY, myLocation.lastUpdateTime);
+
         super.onSaveInstanceState(savedInstanceState);
+    }
+
+    /**
+     * Updates fields based on data stored in the bundle.
+     * @param savedInstanceState The activity state saved in the Bundle.
+     */
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        Log.i(TAG, "Updating values from bundle");
+        if (savedInstanceState != null) {
+            // Update the value of currentLocation from the Bundle and update the UI to show the
+            // correct latitude and longitude.
+            if (savedInstanceState.keySet().contains(MyLocation.LOCATION_KEY)) {
+                // Since LOCATION_KEY was found in the Bundle, we can be sure that mCurrentLocation
+                // is not null.
+                MyLocation.currentLocation = savedInstanceState.getParcelable(MyLocation.LOCATION_KEY);
+            }
+            // Update the value of mLastUpdateTime from the Bundle and update the UI.
+            if (savedInstanceState.keySet().contains(LAST_UPDATED_TIME_STRING_KEY)) {
+                MyLocation.lastUpdateTime = savedInstanceState.getString(LAST_UPDATED_TIME_STRING_KEY);
+            }
+            //updateUI();
+        }
     }
 
     /**
@@ -221,5 +300,36 @@ public class GeoFireFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @AfterPermissionGranted(RC_ACCESS_FINE_LOCATION)
+    private void askLocationTask( MyLocation myLocation) {
+        Context cx = getContext();
+        String[] perms = {Manifest.permission.ACCESS_FINE_LOCATION};
+        if (EasyPermissions.hasPermissions(cx, perms)) {
+            myLocation.startLocationUpdates();
+        } else {
+            EasyPermissions.requestPermissions( this, cx.getString(R.string.perm_access_fine_location), RC_ACCESS_FINE_LOCATION, perms);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        // Forward results to EasyPermissions
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
+    @Override
+    public void onPermissionsGranted(int requestCode, List<String> list) {
+        // Some permissions have been granted
+        Log.d(TAG, "permission granted");
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, List<String> list) {
+        // Some permissions have been denied
+        Log.d(TAG, "permission denied");
     }
 }
