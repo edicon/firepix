@@ -95,6 +95,8 @@ dependencies {
     compile 'com.google.firebase:firebase-database:9.6.1'
     // GeoFire
     compile 'com.firebase:geofire-android:2.1.0'
+    // EasyPermission
+    compile 'pub.devrel:easypermissions:0.2.0'
 }
 
 

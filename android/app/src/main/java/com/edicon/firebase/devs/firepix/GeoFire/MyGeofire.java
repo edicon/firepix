@@ -3,6 +3,8 @@ package com.edicon.firebase.devs.firepix.GeoFire;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.location.Location;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
@@ -15,6 +17,7 @@ import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
 import com.firebase.geofire.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -33,10 +36,12 @@ import java.util.Map;
 
 /**
  Security Rule:  my-geofire
-    http://stackoverflow.com/questions/28060069/using-an-unspecified-index-consider-adding-indexon-g
+    -http://stackoverflow.com/questions/28060069/using-an-unspecified-index-consider-adding-indexon-g
     "my-geofire": {
     ".indexOn": "g"
     }
+  Ref. Source:
+    -https://github.com/sidiqpermana/SampleGeoFire/blob/master/app/src/main/java/com/sidiq/samplegeofire/MainActivity.java
  **/
 
 public class MyGeofire implements
@@ -59,7 +64,7 @@ public class MyGeofire implements
     private Context  context;
     private GoogleMap map;
 
-    private Circle searchCircle;
+    private Circle   searchCircle;
     private GeoFire  geoFire;
     private GeoQuery geoQuery;
 
@@ -78,24 +83,28 @@ public class MyGeofire implements
     }
 
     public void initGeofire(GoogleMap gMap, String geoFireDB, String geoFireRef, GeoLocation initialCenter ) {
+
         LatLng latLngCenter = new LatLng(initialCenter.latitude, initialCenter.longitude);
+
         this.searchCircle = this.map.addCircle(new CircleOptions().center(latLngCenter).radius(1000));
         this.searchCircle.setFillColor(Color.argb(66, 255, 0, 255));
         this.searchCircle.setStrokeColor(Color.argb(66, 0, 0, 0));
+
         this.map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngCenter, INITIAL_ZOOM_LEVEL));
         this.map.setOnCameraChangeListener(this);
 
         // if (!FirebaseApp.getApps(context).isEmpty()) {
         //     FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         // }
+        // 다른 library에서  FireBaseApp 초기화한 경우, 이미 AppInstance 가 존재
         // FirebaseOptions options = new FirebaseOptions.Builder().setApplicationId("mygeofire").setDatabaseUrl(geoFireDB).build();
         // FirebaseApp app = FirebaseApp.initializeApp(context, options);
         // this.geoFire = new GeoFire(FirebaseDatabase.getInstance(app).getReferenceFromUrl(geoFireRef));
         // this.geoFire = new GeoFire(FirebaseUtil.getGerFireRef());
+
         // ToDo: make function
-        this.geoFire = new GeoFire(FirebaseDatabase.getInstance().getReference().child("my-geofire"));
-        // radius in km
-        this.geoQuery = this.geoFire.queryAtLocation(initialCenter, INITIAL_RADIUS);
+        this.geoFire  = new GeoFire(FirebaseDatabase.getInstance().getReference().child("my-geofire"));
+        this.geoQuery = this.geoFire.queryAtLocation(initialCenter, INITIAL_RADIUS); // radius in km
         // setup markers
         this.markers = new HashMap<String, Marker>();
         // add an event listener to start updating locations again
@@ -107,11 +116,12 @@ public class MyGeofire implements
         // Update the search criteria for this geoQuery and the circle on the map
         LatLng center = cameraPosition.target;
         double radius = zoomLevelToRadius(cameraPosition.zoom);
+
         this.searchCircle.setCenter(center);
         this.searchCircle.setRadius(radius);
+
         this.geoQuery.setCenter(new GeoLocation(center.latitude, center.longitude));
-        // radius in km
-        this.geoQuery.setRadius(radius/1000);
+        this.geoQuery.setRadius(radius/1000); // radius in km
 
         if(BuildConfig.DEBUG) {
             String geoInfo = String.format("--> onCameraChange: %s changed with [%f,%f]", cameraPosition.toString(), center.latitude, center.longitude);
@@ -265,5 +275,10 @@ public class MyGeofire implements
             return;
         }
         this.geoFire.removeLocation(key);
+    }
+
+    public void sendLocationToGeoFire( String userKey, double latitude, double longitude){
+        if( this.geoFire != null )
+            this.geoFire.setLocation( userKey,  new GeoLocation(latitude, longitude));
     }
 }
