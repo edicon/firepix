@@ -114,18 +114,18 @@ public class MyLocation  {
 
     // ToDo: Check Ref. Source
     private void showMap(double latitude, double longitude) {
-        if( MyGeoFireNew.getMap() != null )
-            MyGeoFireNew.showMap( latitude, longitude);
+        if( MyGeoFire.getMap() != null )
+            MyGeoFire.showMap( latitude, longitude);
     }
 
     private void sendLocationToGeoFire(String userKey, double latitude, double longitude) {
-        if( MyGeoFireNew.getGeoFire() != null )
-            MyGeoFireNew.sendLocationToGeoFire( userKey, latitude, longitude);
+        if( MyGeoFire.getGeoFire() != null )
+            MyGeoFire.sendLocationToGeoFire( userKey, latitude, longitude);
     }
 
-    public void onStart( GoogleApiClient apiClient, MyGeoFireNew myGeoFire ) {
+    public void onStart( GoogleApiClient apiClient, MyGeoFire myGeoFire ) {
         // this.geoQuery.addGeoQueryEventListener(this);
-        MyGeoFireNew.addGeoQueryEventListener( myGeoFire );
+        MyGeoFire.addGeoQueryEventListener( myGeoFire );
         apiClient.connect();
     }
 }
