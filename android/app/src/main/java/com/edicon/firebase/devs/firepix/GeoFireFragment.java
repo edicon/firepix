@@ -27,7 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.edicon.firebase.devs.firepix.GeoFire.MyGeoFire;
+import com.edicon.firebase.devs.firepix.GeoFire.MyGeoFireNew;
 import com.edicon.firebase.devs.firepix.GeoFire.MyLocation;
 import com.edicon.firebase.devs.test.friendlypix.BuildConfig;
 import com.edicon.firebase.devs.test.friendlypix.R;
@@ -172,11 +172,11 @@ public class GeoFireFragment extends Fragment implements
         Log.w(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
     }
 
-    private MyGeoFire myGeofire;
+    private MyGeoFireNew myGeofire;
     private static boolean MY_GEOFIRE = true;
     private void initMaplocation( GoogleMap googleMap) {
         if( MY_GEOFIRE ) {
-            myGeofire = MyGeoFire.newInstance(getContext(), googleMap);
+            myGeofire = MyGeoFireNew.newInstance(getContext(), googleMap);
             // GeoLocation INITIAL_CENTER = new GeoLocation(37.7789, -122.4017); // SF
             GeoLocation INITIAL_CENTER = new GeoLocation(37.552042, 127.089785); // Acha
             myGeofire.startGeofire(INITIAL_CENTER);
@@ -214,7 +214,7 @@ public class GeoFireFragment extends Fragment implements
     public void onResume() {
         super.onResume();
         mapView.onResume();
-        if (googleApiClient.isConnected()) {
+        if (googleApiClient != null && googleApiClient.isConnected()) {
             myLocation.startLocationUpdates();
         }
     }
@@ -223,7 +223,8 @@ public class GeoFireFragment extends Fragment implements
     public void onPause() {
         super.onPause();
         mapView.onPause();
-        myLocation.stopLocationUpdates();
+        if( myLocation != null )
+            myLocation.stopLocationUpdates();
     }
 
     @Override
