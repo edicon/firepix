@@ -27,7 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.edicon.firebase.devs.firepix.GeoFire.MyGeoFireNew;
+import com.edicon.firebase.devs.firepix.GeoFire.MyGeoFire;
 import com.edicon.firebase.devs.firepix.GeoFire.MyLocation;
 import com.edicon.firebase.devs.test.friendlypix.BuildConfig;
 import com.edicon.firebase.devs.test.friendlypix.R;
@@ -172,11 +172,11 @@ public class GeoFireFragment extends Fragment implements
         Log.w(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
     }
 
-    private MyGeoFireNew myGeofire;
+    private MyGeoFire myGeofire;
     private static boolean MY_GEOFIRE = true;
     private void initMaplocation( GoogleMap googleMap) {
         if( MY_GEOFIRE ) {
-            myGeofire = MyGeoFireNew.newInstance(getContext(), googleMap);
+            myGeofire = MyGeoFire.newInstance(getContext(), googleMap);
             // GeoLocation INITIAL_CENTER = new GeoLocation(37.7789, -122.4017); // SF
             GeoLocation INITIAL_CENTER = new GeoLocation(37.552042, 127.089785); // Acha
             myGeofire.startGeofire(INITIAL_CENTER);
@@ -247,8 +247,8 @@ public class GeoFireFragment extends Fragment implements
         Log.d(TAG, "Recycler view scroll position: " + recyclerViewScrollPosition);
         savedInstanceState.putSerializable(KEY_LAYOUT_POSITION, recyclerViewScrollPosition);
 
-        savedInstanceState.putParcelable(MyLocation.LOCATION_KEY, myLocation.currentLocation);
-        savedInstanceState.putString( MyLocation.LAST_UPDATED_TIME_STRING_KEY, myLocation.lastUpdateTime);
+        savedInstanceState.putParcelable(MyLocation.LOCATION_KEY, MyLocation.currentLocation);
+        savedInstanceState.putString( MyLocation.LAST_UPDATED_TIME_STRING_KEY, MyLocation.lastUpdateTime);
 
         super.onSaveInstanceState(savedInstanceState);
     }

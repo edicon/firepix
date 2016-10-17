@@ -39,7 +39,7 @@ import java.util.Map;
     -https://github.com/sidiqpermana/SampleGeoFire/blob/master/app/src/main/java/com/sidiq/samplegeofire/MainActivity.java
  **/
 
-public class MyGeoFireNew implements
+public class MyGeoFire implements
     GeoQueryEventListener,
     GeoFire.CompletionListener,
     LocationCallback,
@@ -63,18 +63,18 @@ public class MyGeoFireNew implements
     private static GeoQuery  geoQuery;
     private static GoogleMap geoMap;
 
-    private static MyGeoFireNew myGeoFire;
+    private static MyGeoFire myGeoFire;
 
     private Map<String, Marker> markers;
 
-    public static MyGeoFireNew newInstance(Context cx, GoogleMap map ) {
+    public static MyGeoFire newInstance(Context cx, GoogleMap map ) {
         context = cx;
         geoMap  = map;
-        myGeoFire = new MyGeoFireNew();
+        myGeoFire = new MyGeoFire();
         return myGeoFire;
     }
 
-    public static MyGeoFireNew getMyGeoFire() {
+    public static MyGeoFire getMyGeoFire() {
         return myGeoFire;
     }
 
@@ -97,12 +97,12 @@ public class MyGeoFireNew implements
 
         LatLng latLngCenter = new LatLng(initialCenter.latitude, initialCenter.longitude);
 
-        this.searchCircle = this.geoMap.addCircle(new CircleOptions().center(latLngCenter).radius(1000));
+        this.searchCircle = geoMap.addCircle(new CircleOptions().center(latLngCenter).radius(1000));
         this.searchCircle.setFillColor(Color.argb(66, 255, 0, 255));
         this.searchCircle.setStrokeColor(Color.argb(66, 0, 0, 0));
 
-        this.geoMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngCenter, INITIAL_ZOOM_LEVEL));
-        this.geoMap.setOnCameraChangeListener(this);
+        geoMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngCenter, INITIAL_ZOOM_LEVEL));
+        geoMap.setOnCameraChangeListener(this);
 
         // if (!FirebaseApp.getApps(context).isEmpty()) {
         //     FirebaseDatabase.getInstance().setPersistenceEnabled(true);
@@ -114,8 +114,8 @@ public class MyGeoFireNew implements
         // this.geoFire = new GeoFire(FirebaseUtil.getGerFireRef());
 
         // ToDo: make function
-        this.geoFire  = new GeoFire(FirebaseDatabase.getInstance().getReference().child("my-geofire"));
-        this.geoQuery = this.geoFire.queryAtLocation(initialCenter, INITIAL_RADIUS); // radius in km
+        geoFire  = new GeoFire(FirebaseDatabase.getInstance().getReference().child("my-geofire"));
+        geoQuery = geoFire.queryAtLocation(initialCenter, INITIAL_RADIUS); // radius in km
         // setup markers
         this.markers = new HashMap<String, Marker>();
 
@@ -124,7 +124,7 @@ public class MyGeoFireNew implements
         // geoQuery.addGeoQueryEventListener( this );
     }
 
-    public static void addGeoQueryEventListener( MyGeoFireNew myGeoFire) {
+    public static void addGeoQueryEventListener( MyGeoFire myGeoFire) {
         geoQuery.addGeoQueryEventListener( myGeoFire );
     }
 
@@ -137,8 +137,8 @@ public class MyGeoFireNew implements
         this.searchCircle.setCenter(center);
         this.searchCircle.setRadius(radius);
 
-        this.geoQuery.setCenter(new GeoLocation(center.latitude, center.longitude));
-        this.geoQuery.setRadius(radius/1000); // radius in km
+        geoQuery.setCenter(new GeoLocation(center.latitude, center.longitude));
+        geoQuery.setRadius(radius/1000); // radius in km
 
         if(BuildConfig.DEBUG) {
             String geoInfo = String.format("--> onCameraChange: %s changed with [%f,%f]", cameraPosition.toString(), center.latitude, center.longitude);
@@ -149,7 +149,7 @@ public class MyGeoFireNew implements
     @Override
     public void onKeyEntered(String key, GeoLocation location) {
         // Add a new marker to the map
-        Marker marker = this.geoMap
+        Marker marker = geoMap
                 .addMarker( new MarkerOptions()
                     .title(key)
                     .position(new LatLng(location.latitude, location.longitude)));
@@ -240,7 +240,7 @@ public class MyGeoFireNew implements
     }
 
     public void onStop() {
-        this.geoQuery.removeAllListeners();
+        geoQuery.removeAllListeners();
         for (Marker marker: this.markers.values()) {
             marker.remove();
         }
@@ -248,11 +248,11 @@ public class MyGeoFireNew implements
     }
 
     public void setLocation( String key, GeoLocation geoLocation) {
-        if( this.geoFire == null ) {
+        if( geoFire == null ) {
             Log.e(TAG, "setLocation Error: No GeoFire");
             return;
         }
-        this.geoFire.setLocation(key, geoLocation, this);
+        geoFire.setLocation(key, geoLocation, this);
     }
     @Override
     public void onComplete(String key, DatabaseError error) {
@@ -265,11 +265,11 @@ public class MyGeoFireNew implements
     }
 
     public void getLocation( String key ) {
-        if( this.geoFire == null ) {
+        if( geoFire == null ) {
             Log.e(TAG, "getLocation Error: No GeoFire");
             return;
         }
-        this.geoFire.getLocation(key, this);
+        geoFire.getLocation(key, this);
     }
     @Override
     public void onLocationResult(String key, GeoLocation location) {
@@ -287,11 +287,11 @@ public class MyGeoFireNew implements
     }
 
     public void removeLocation( String key ) {
-        if( this.geoFire == null ) {
+        if( geoFire == null ) {
             Log.e(TAG, "removeLocation Error: No GeoFire");
             return;
         }
-        this.geoFire.removeLocation(key);
+        geoFire.removeLocation(key);
     }
 
     public static void showMap( double userLatitude, double userLongitude){
