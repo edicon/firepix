@@ -3,8 +3,6 @@ package com.edicon.firebase.devs.firepix.GeoFire;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
-import android.location.Location;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
@@ -17,7 +15,6 @@ import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
 import com.firebase.geofire.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -26,8 +23,6 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -44,7 +39,7 @@ import java.util.Map;
     -https://github.com/sidiqpermana/SampleGeoFire/blob/master/app/src/main/java/com/sidiq/samplegeofire/MainActivity.java
  **/
 
-public class MyGeofire implements
+public class MyGeoFire implements
     GeoQueryEventListener,
     GeoFire.CompletionListener,
     LocationCallback,
@@ -61,37 +56,53 @@ public class MyGeofire implements
     private static final String GEO_FIRE_DB     = "https://vivid-torch-3052.firebaseio.com";
     private static final String GEO_FIRE_REF    = GEO_FIRE_DB + "/my-geofire";
 
-    private Context  context;
-    private GoogleMap map;
+    private static Context  context;
 
-    private Circle   searchCircle;
-    private GeoFire  geoFire;
-    private GeoQuery geoQuery;
+    private Circle searchCircle;
+    private static GeoFire   geoFire;
+    private static GeoQuery  geoQuery;
+    private static GoogleMap geoMap;
+
+    private static MyGeoFire myGeoFire;
 
     private Map<String, Marker> markers;
 
-    public MyGeofire(Context cx, GoogleMap map) {
-        this.context  = cx;
-        this.map = map;
+    public static MyGeoFire newInstance( Context cx, GoogleMap map ) {
+        context = cx;
+        geoMap  = map;
+        myGeoFire = new MyGeoFire();
+        return myGeoFire;
+    }
+
+    public static MyGeoFire getMyGeoFire() {
+        return myGeoFire;
+    }
+
+    public static GoogleMap getMap() {
+        return geoMap;
+    }
+
+    public static GeoFire getGeoFire() {
+        return geoFire;
     }
 
     public void startGeofire( GeoLocation initialCenter ) {
         if( initialCenter != null )
-            initGeofire(map, GEO_FIRE_DB, GEO_FIRE_REF, initialCenter);
+            initGeofire(geoMap, GEO_FIRE_DB, GEO_FIRE_REF, initialCenter);
         else
-            initGeofire(map, GEO_FIRE_DB, GEO_FIRE_REF, INITIAL_CENTER);
+            initGeofire(geoMap, GEO_FIRE_DB, GEO_FIRE_REF, INITIAL_CENTER);
     }
 
     public void initGeofire(GoogleMap gMap, String geoFireDB, String geoFireRef, GeoLocation initialCenter ) {
 
         LatLng latLngCenter = new LatLng(initialCenter.latitude, initialCenter.longitude);
 
-        this.searchCircle = this.map.addCircle(new CircleOptions().center(latLngCenter).radius(1000));
+        this.searchCircle = this.geoMap.addCircle(new CircleOptions().center(latLngCenter).radius(1000));
         this.searchCircle.setFillColor(Color.argb(66, 255, 0, 255));
         this.searchCircle.setStrokeColor(Color.argb(66, 0, 0, 0));
 
-        this.map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngCenter, INITIAL_ZOOM_LEVEL));
-        this.map.setOnCameraChangeListener(this);
+        this.geoMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngCenter, INITIAL_ZOOM_LEVEL));
+        this.geoMap.setOnCameraChangeListener(this);
 
         // if (!FirebaseApp.getApps(context).isEmpty()) {
         //     FirebaseDatabase.getInstance().setPersistenceEnabled(true);
@@ -107,8 +118,14 @@ public class MyGeofire implements
         this.geoQuery = this.geoFire.queryAtLocation(initialCenter, INITIAL_RADIUS); // radius in km
         // setup markers
         this.markers = new HashMap<String, Marker>();
+
         // add an event listener to start updating locations again
-        this.geoQuery.addGeoQueryEventListener(this);
+        addGeoQueryEventListener( myGeoFire );
+        // geoQuery.addGeoQueryEventListener( this );
+    }
+
+    public static void addGeoQueryEventListener( MyGeoFire myGeoFire) {
+        geoQuery.addGeoQueryEventListener( myGeoFire );
     }
 
     @Override
@@ -132,7 +149,7 @@ public class MyGeofire implements
     @Override
     public void onKeyEntered(String key, GeoLocation location) {
         // Add a new marker to the map
-        Marker marker = this.map
+        Marker marker = this.geoMap
                 .addMarker( new MarkerOptions()
                     .title(key)
                     .position(new LatLng(location.latitude, location.longitude)));
@@ -277,8 +294,13 @@ public class MyGeofire implements
         this.geoFire.removeLocation(key);
     }
 
-    public void sendLocationToGeoFire( String userKey, double latitude, double longitude){
-        if( this.geoFire != null )
-            this.geoFire.setLocation( userKey,  new GeoLocation(latitude, longitude));
+    public static void showMap( double userLatitude, double userLongitude){
+        LatLng latLngCenter = new LatLng(userLatitude, userLongitude);
+        // ToDo: check zoom level: double radius = zoomLevelToRadius(cameraPosition.zoom);
+        geoMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngCenter, INITIAL_ZOOM_LEVEL));
+    }
+
+    public static void sendLocationToGeoFire( String userKey, double userLatitude, double userLongitude){
+        geoFire.setLocation( userKey,  new GeoLocation(userLatitude, userLongitude));
     }
 }
